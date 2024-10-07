@@ -26,29 +26,39 @@ type Shape struct {
 type Grid [PlayfieldHeight][PlayfieldWidth]Cell
 
 func main() {
-	lShape := Shape{
+	s0 := Shape{
+		Id:     0,
+		Locked: false,
+	}
+
+	s1 := Shape{
 		Id:     1,
 		Locked: false,
 	}
 
+	s2 := Shape{
+		Id:     2,
+		Locked: false,
+	}
+
 	grid := Grid{
-		{Cell{Covered: true, Shape: &lShape}, Cell{Covered: true, Shape: &lShape}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{Covered: true, Shape: &lShape}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{Covered: true, Shape: &lShape}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
+		{Cell{Covered: true, Shape: &s0}, Cell{Covered: true, Shape: &s0}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
+		{Cell{Covered: true, Shape: &s0}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
+		{Cell{Covered: true, Shape: &s0}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
 		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
 		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
 		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
 		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
 		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
+		{Cell{Covered: true, Shape: &s2}, Cell{}, Cell{Covered: true, Shape: &s2}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
+		{Cell{Covered: true, Shape: &s2}, Cell{Covered: true, Shape: &s2}, Cell{Covered: true, Shape: &s2}, Cell{Covered: true, Shape: &s2}, Cell{Covered: true, Shape: &s2}, Cell{Covered: true, Shape: &s2}, Cell{Covered: true, Shape: &s2}, Cell{Covered: true, Shape: &s2}, Cell{Covered: true, Shape: &s2}, Cell{Covered: true, Shape: &s2}},
 		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
 		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
 		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
 		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
 		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
+		{Cell{Covered: true, Shape: &s1}, Cell{}, Cell{Covered: true, Shape: &s1}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
+		{Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}},
 		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
 		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
 		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
@@ -59,6 +69,7 @@ func main() {
 	}
 	for {
 		clearConsole()
+		clearBottom(&grid)
 		tick(&grid)
 		render(grid)
 		time.Sleep(TickTime)
@@ -88,6 +99,35 @@ func tick(grid *Grid) {
 				if !cell.Shape.Locked && cellBellowIsNotCovered {
 					grid[row+1][col] = *cell
 					grid[row][col] = Cell{}
+				}
+			}
+		}
+	}
+}
+
+func clearBottom(grid *Grid) {
+	for row := PlayfieldHeight - 1; row >= 0; row-- {
+		fullLine := true
+
+		for col := 0; col < PlayfieldWidth; col++ {
+			cell := &grid[row][col]
+
+			if !cell.Covered {
+				fullLine = false
+				continue
+			}
+
+			fullLine = fullLine && cell.Covered && cell.Shape.Locked
+		}
+
+		if fullLine {
+			for col := 0; col < PlayfieldWidth; col++ {
+				grid[row][col] = Cell{}
+				if row-1 >= 0 {
+					cellAbove := grid[row-1][col]
+					if cellAbove.Covered && cellAbove.Shape.Locked {
+						cellAbove.Shape.Locked = false
+					}
 				}
 			}
 		}
