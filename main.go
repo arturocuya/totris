@@ -14,17 +14,27 @@ const PlayfieldHeight = 24
 const TickTime = 250 * time.Millisecond
 
 type Cell struct {
-	Locked  bool
 	Covered bool
+	Shape   *Shape
+}
+
+type Shape struct {
+	Id     int
+	Locked bool
 }
 
 type Grid [PlayfieldHeight][PlayfieldWidth]Cell
 
 func main() {
+	lShape := Shape{
+		Id:     1,
+		Locked: false,
+	}
+
 	grid := Grid{
-		{Cell{Covered: true}, Cell{Covered: true}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{Covered: true}, Cell{Covered: true}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
+		{Cell{Covered: true, Shape: &lShape}, Cell{Covered: true, Shape: &lShape}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
+		{Cell{Covered: true, Shape: &lShape}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
+		{Cell{Covered: true, Shape: &lShape}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
 		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
 		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
 		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
@@ -67,9 +77,9 @@ func tick(grid *Grid) {
 			cell := &grid[row][col]
 
 			if cell.Covered {
-				if row == PlayfieldHeight-1 || (row+1 < PlayfieldHeight && grid[row+1][col].Covered && grid[row+1][col].Locked) {
-					cell.Locked = true
-				} else if row+1 < PlayfieldHeight && !grid[row+1][col].Covered {
+				if row == PlayfieldHeight-1 || (row+1 < PlayfieldHeight && grid[row+1][col].Covered && grid[row+1][col].Shape.Locked) {
+					cell.Shape.Locked = true
+				} else if !cell.Shape.Locked && row+1 < PlayfieldHeight && !grid[row+1][col].Covered {
 					grid[row+1][col] = *cell
 					grid[row][col] = Cell{}
 				}
