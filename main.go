@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 )
 
@@ -11,7 +12,7 @@ const BlockSprite = "[]"
 const EmptySprite = ".."
 const PlayfieldWidth = 10
 const PlayfieldHeight = 24
-const TickTime = 100 * time.Millisecond
+const TickTime = 50 * time.Millisecond
 
 type Cell struct {
 	Covered bool
@@ -21,52 +22,15 @@ type Cell struct {
 type Shape struct {
 	Id     int
 	Locked bool
+	Sprite string
 }
 
 type Grid [PlayfieldHeight][PlayfieldWidth]Cell
 
 func main() {
-	s0 := Shape{
-		Id:     0,
-		Locked: false,
-	}
+	content, _ := os.ReadFile("inputgrid.txt")
+	grid := stringToGrid(string(content))
 
-	s1 := Shape{
-		Id:     1,
-		Locked: false,
-	}
-
-	s2 := Shape{
-		Id:     2,
-		Locked: false,
-	}
-
-	grid := Grid{
-		{Cell{Covered: true, Shape: &s0}, Cell{Covered: true, Shape: &s0}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{Covered: true, Shape: &s0}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{Covered: true, Shape: &s0}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{Covered: true, Shape: &s2}, Cell{}, Cell{Covered: true, Shape: &s2}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{Covered: true, Shape: &s2}, Cell{Covered: true, Shape: &s2}, Cell{Covered: true, Shape: &s2}, Cell{Covered: true, Shape: &s2}, Cell{Covered: true, Shape: &s2}, Cell{Covered: true, Shape: &s2}, Cell{Covered: true, Shape: &s2}, Cell{Covered: true, Shape: &s2}, Cell{Covered: true, Shape: &s2}, Cell{Covered: true, Shape: &s2}},
-		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}},
-		{Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}},
-		{Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}},
-		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-	}
 	for {
 		clearConsole()
 		clearBottom(&grid)
@@ -146,12 +110,13 @@ func render(grid Grid) {
 		for col := 0; col < PlayfieldWidth; col++ {
 			cell := grid[row][col]
 			if cell.Covered {
-				// if cell.Locked {
-				// 	fmt.Print("LL")
-				// } else {
-				// 	fmt.Print("UU")
-				// }
-				fmt.Print(BlockSprite)
+				if cell.Shape.Locked {
+					fmt.Print("L" + cell.Shape.Sprite)
+				} else {
+
+					fmt.Print("U" + cell.Shape.Sprite)
+				}
+				// fmt.Print(BlockSprite)
 			} else {
 				fmt.Print(EmptySprite)
 			}
@@ -159,5 +124,56 @@ func render(grid Grid) {
 		fmt.Print("\n")
 	}
 
-	fmt.Printf("Score: %d\n", 10)
+	fmt.Printf("\nScore: %d\n", 10)
+}
+
+func stringToGrid(content string) Grid {
+	var grid Grid
+
+	var shapes []Shape
+	lines := strings.Split(content, "\n")
+
+	row := 0
+	for i := 0; i < len(lines) && row < PlayfieldHeight; i++ {
+		line := strings.Fields(lines[i])
+
+		if len(line) == 0 {
+			continue
+		}
+
+		var gridRow [PlayfieldWidth]Cell
+
+		for col := 0; col < len(line); col++ {
+			char := string(line[col])
+
+			if char == "." {
+				gridRow[col] = Cell{Covered: false}
+				continue
+			}
+
+			id := int(rune(char[0]))
+
+			foundIdx := -1
+			for k := 0; k < len(shapes); k++ {
+				if shapes[k].Id == id {
+					foundIdx = k
+					break
+				}
+			}
+
+			if foundIdx == -1 {
+				newShape := Shape{Id: id, Locked: false}
+				newShape.Sprite = string(char)
+				shapes = append(shapes, newShape)
+				foundIdx = len(shapes) - 1
+			}
+
+			gridRow[col] = Cell{Covered: true, Shape: &shapes[foundIdx]}
+		}
+
+		grid[row] = gridRow
+		row++
+	}
+
+	return grid
 }
