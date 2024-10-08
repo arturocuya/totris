@@ -90,3 +90,74 @@ func TestTick__LockL(t *testing.T) {
 	assert.Equal(t, grid[PlayfieldHeight-1][1].Shape, nil)
 	assert.Equal(t, grid[PlayfieldHeight-2][2].Shape, nil)
 }
+
+func TestTick_LockLs(t *testing.T) {
+	content := `
+		a   .   .   .   .   .   .   .   .   .
+		a   .   .   .   .   .   .   .   .   .
+		a   a   .   .   .   .   .   .   .   .
+		.   .   .   .   .   .   .   .   .   .
+		.   .   .   .   .   .   .   .   .   .
+		.   b   .   .   .   .   .   .   .   .
+		.   b   .   .   .   .   .   .   .   .
+		b   b   .   .   .   .   .   .   .   .
+	`
+	grid := stringToGrid(content)
+
+	// after full ticks the two shapes lock without a falling into b
+
+	for i := 0; i <= PlayfieldHeight; i++ {
+		tick(&grid)
+	}
+
+	aId := int(rune('a'))
+	bId := int(rune('b'))
+
+	// check that b shape has locked at the bottom
+	assert.Equal(t, grid[PlayfieldHeight-3][0].Covered, false)
+
+	assert.Equal(t, grid[PlayfieldHeight-3][1].Covered, true)
+	assert.Equal(t, grid[PlayfieldHeight-3][1].Shape.Locked, true)
+	assert.Equal(t, grid[PlayfieldHeight-3][1].Shape.Id, bId)
+
+	assert.Equal(t, grid[PlayfieldHeight-2][0].Covered, false)
+
+	assert.Equal(t, grid[PlayfieldHeight-2][1].Covered, true)
+	assert.Equal(t, grid[PlayfieldHeight-2][1].Shape.Locked, true)
+	assert.Equal(t, grid[PlayfieldHeight-2][1].Shape.Id, bId)
+
+	assert.Equal(t, grid[PlayfieldHeight-1][0].Covered, true)
+	assert.Equal(t, grid[PlayfieldHeight-1][0].Shape.Locked, true)
+	assert.Equal(t, grid[PlayfieldHeight-1][0].Shape.Id, bId)
+
+	assert.Equal(t, grid[PlayfieldHeight-1][1].Covered, true)
+	assert.Equal(t, grid[PlayfieldHeight-1][1].Shape.Locked, true)
+	assert.Equal(t, grid[PlayfieldHeight-1][1].Shape.Id, bId)
+
+	// check that a shape has locked above b shape
+
+	assert.Equal(t, grid[PlayfieldHeight-6][0].Covered, true)
+	assert.Equal(t, grid[PlayfieldHeight-6][0].Shape.Locked, true)
+	assert.Equal(t, grid[PlayfieldHeight-6][0].Shape.Id, aId)
+
+	assert.Equal(t, grid[PlayfieldHeight-6][1].Covered, false)
+
+	assert.Equal(t, grid[PlayfieldHeight-5][0].Covered, true)
+	assert.Equal(t, grid[PlayfieldHeight-5][0].Shape.Locked, true)
+	assert.Equal(t, grid[PlayfieldHeight-5][0].Shape.Id, aId)
+
+	assert.Equal(t, grid[PlayfieldHeight-5][1].Covered, false)
+
+	assert.Equal(t, grid[PlayfieldHeight-4][0].Covered, true)
+	assert.Equal(t, grid[PlayfieldHeight-4][0].Shape.Locked, true)
+	assert.Equal(t, grid[PlayfieldHeight-4][0].Shape.Id, aId)
+
+	assert.Equal(t, grid[PlayfieldHeight-4][1].Covered, true)
+	assert.Equal(t, grid[PlayfieldHeight-4][1].Shape.Locked, true)
+	assert.Equal(t, grid[PlayfieldHeight-4][1].Shape.Id, aId)
+
+	// cells above should not be covered
+
+	assert.Equal(t, grid[PlayfieldHeight-7][0].Covered, false)
+	assert.Equal(t, grid[PlayfieldHeight-7][0].Covered, false)
+}

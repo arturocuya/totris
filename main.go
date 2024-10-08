@@ -61,7 +61,13 @@ func tick(grid *Grid) {
 
 			if row == PlayfieldHeight-1 || cellBellowIsCoveredAndLocked {
 				cell.Shape.Locked = true
-			} else {
+			}
+		}
+
+		for col := 0; col < PlayfieldWidth; col++ {
+			cell := &grid[row][col]
+
+			if cell.Covered && !cell.Shape.Locked {
 				cellBellowIsNotCovered := row+1 < PlayfieldHeight &&
 					!grid[row+1][col].Covered
 
