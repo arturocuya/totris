@@ -11,7 +11,7 @@ const BlockSprite = "[]"
 const EmptySprite = ".."
 const PlayfieldWidth = 10
 const PlayfieldHeight = 24
-const TickTime = 250 * time.Millisecond
+const TickTime = 100 * time.Millisecond
 
 type Cell struct {
 	Covered bool
@@ -56,8 +56,8 @@ func main() {
 		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
 		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
 		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
-		{Cell{Covered: true, Shape: &s1}, Cell{}, Cell{Covered: true, Shape: &s1}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
+		{Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}},
+		{Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}},
 		{Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}, Cell{Covered: true, Shape: &s1}},
 		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
 		{Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}, Cell{}},
@@ -91,11 +91,16 @@ func tick(grid *Grid) {
 				continue
 			}
 
-			cellBellowIsCoveredAndLocked := row+1 < PlayfieldHeight && grid[row+1][col].Covered && grid[row+1][col].Shape.Locked
+			cellBellowIsCoveredAndLocked := row+1 < PlayfieldHeight &&
+				grid[row+1][col].Covered &&
+				grid[row+1][col].Shape.Locked
+
 			if row == PlayfieldHeight-1 || cellBellowIsCoveredAndLocked {
 				cell.Shape.Locked = true
 			} else {
-				cellBellowIsNotCovered := row+1 < PlayfieldHeight && !grid[row+1][col].Covered
+				cellBellowIsNotCovered := row+1 < PlayfieldHeight &&
+					!grid[row+1][col].Covered
+
 				if !cell.Shape.Locked && cellBellowIsNotCovered {
 					grid[row+1][col] = *cell
 					grid[row][col] = Cell{}
@@ -120,14 +125,16 @@ func clearBottom(grid *Grid) {
 			fullLine = fullLine && cell.Covered && cell.Shape.Locked
 		}
 
-		if fullLine {
-			for col := 0; col < PlayfieldWidth; col++ {
-				grid[row][col] = Cell{}
-				if row-1 >= 0 {
-					cellAbove := grid[row-1][col]
-					if cellAbove.Covered && cellAbove.Shape.Locked {
-						cellAbove.Shape.Locked = false
-					}
+		if !fullLine {
+			continue
+		}
+
+		for col := 0; col < PlayfieldWidth; col++ {
+			grid[row][col] = Cell{}
+			if row-1 >= 0 {
+				cellAbove := grid[row-1][col]
+				if cellAbove.Covered && cellAbove.Shape.Locked {
+					cellAbove.Shape.Locked = false
 				}
 			}
 		}
