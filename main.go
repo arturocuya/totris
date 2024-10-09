@@ -4,15 +4,18 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 const BlockSprite = "[]"
 const EmptySprite = ".."
 const PlayfieldWidth = 10
 const PlayfieldHeight = 24
-const TickTime = 50 * time.Millisecond
+const DefaultTickTime = 150 * time.Millisecond
 
 type Cell struct {
 	Covered bool
@@ -31,12 +34,21 @@ func main() {
 	content, _ := os.ReadFile("inputgrid.txt")
 	grid := stringToGrid(string(content))
 
+	tickTime := DefaultTickTime
+
+	godotenv.Load()
+	tickTimeValue, err := strconv.Atoi(os.Getenv("TICK_TIME"))
+
+	if err == nil {
+		tickTime = time.Duration(tickTimeValue) * time.Millisecond
+	}
+
 	for {
 		clearConsole()
 		clearBottom(&grid)
 		tick(&grid)
 		render(grid)
-		time.Sleep(TickTime)
+		time.Sleep(tickTime)
 	}
 }
 
