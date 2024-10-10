@@ -34,12 +34,13 @@ func TestStringToGrid_LockingABlockLocksTheWholeShape(t *testing.T) {
 	`
 	grid := stringToGrid(content)
 
-	assert.Equal(t, &grid[2][0].Shape, &grid[0][1].Shape)
 	assert.Equal(t, grid[2][0].Shape, grid[0][1].Shape)
-	assert.Equal(t, grid[2][0].Shape.Id, grid[0][1].Shape.Id)
 
 	grid[2][0].Shape.Locked = true
 	assert.Equal(t, grid[0][1].Shape.Locked, true)
+
+	grid[2][0].Shape.Locked = false
+	assert.Equal(t, grid[0][1].Shape.Locked, false)
 }
 
 func TestStringToGrid_DifferentShapes(t *testing.T) {
@@ -73,6 +74,7 @@ func TestTick__LockL(t *testing.T) {
 	grid := stringToGrid(content)
 
 	for i := 0; i <= PlayfieldHeight; i++ {
+		clearBottom(&grid)
 		tick(&grid)
 	}
 	assert.NotEqual(t, grid[PlayfieldHeight-1][0].Shape, nil)
@@ -107,6 +109,7 @@ func TestTick_LockLs(t *testing.T) {
 	// after full ticks the two shapes lock without a falling into b
 
 	for i := 0; i <= PlayfieldHeight; i++ {
+		clearBottom(&grid)
 		tick(&grid)
 	}
 
@@ -160,4 +163,46 @@ func TestTick_LockLs(t *testing.T) {
 
 	assert.Equal(t, grid[PlayfieldHeight-7][0].Covered, false)
 	assert.Equal(t, grid[PlayfieldHeight-7][0].Covered, false)
+}
+
+func TestTick_ShitMovesDownAfterClear(t *testing.T) {
+	content := `
+		.   .   .   .   .   .   .   .   .   .
+		.   .   .   .   c   c   .   .   .   .
+		.   .   .   .   c   c   .   .   .   .
+		.   .   .   .   .   .   .   x   .   .
+		a   a   .   .   .   .   x   x   e   e
+		a   a   .   .   .   .   x   .   e   e
+		.   .   b   b   .   .   .   .   .   .
+		.   .   b   b   .   .   .   .   .   .
+		.   .   .   .   .   .   d   d   .   .
+		.   .   .   .   .   .   d   d   .   .
+	`
+	grid := stringToGrid(content)
+
+	for i := 0; i <= PlayfieldHeight+10; i++ {
+		clearBottom(&grid)
+		tick(&grid)
+	}
+
+	// last two rows should be clear except for x shape
+	// that should have fallen
+
+	xId := int(rune('x'))
+
+	assert.Equal(t, grid[PlayfieldHeight-3][6].Covered, false)
+
+	assert.Equal(t, grid[PlayfieldHeight-3][7].Covered, true)
+	assert.Equal(t, grid[PlayfieldHeight-3][7].Shape.Locked, true)
+	assert.Equal(t, grid[PlayfieldHeight-3][7].Shape.Id, xId)
+
+	assert.Equal(t, grid[PlayfieldHeight-2][6].Covered, true)
+	assert.Equal(t, grid[PlayfieldHeight-2][6].Shape.Locked, true)
+	assert.Equal(t, grid[PlayfieldHeight-2][6].Shape.Id, xId)
+
+	assert.Equal(t, grid[PlayfieldHeight-2][7].Covered, true)
+	assert.Equal(t, grid[PlayfieldHeight-2][7].Shape.Locked, true)
+	assert.Equal(t, grid[PlayfieldHeight-2][7].Shape.Id, xId)
+
+	assert.Equal(t, grid[PlayfieldHeight-1][0].Covered, false)
 }

@@ -93,7 +93,7 @@ func tick(grid *Grid) {
 }
 
 func clearBottom(grid *Grid) {
-	for row := PlayfieldHeight - 1; row >= 0; row-- {
+	for row := 0; row < PlayfieldHeight; row++ {
 		fullLine := true
 
 		for col := 0; col < PlayfieldWidth; col++ {
@@ -116,7 +116,7 @@ func clearBottom(grid *Grid) {
 			if row-1 >= 0 {
 				cellAbove := grid[row-1][col]
 				if cellAbove.Covered && cellAbove.Shape.Locked {
-					cellAbove.Shape.Locked = false
+					grid[row-1][col].Shape.Locked = false
 				}
 			}
 		}
@@ -148,7 +148,7 @@ func render(grid Grid) {
 func stringToGrid(content string) Grid {
 	var grid Grid
 
-	var shapes []Shape
+	var shapes []*Shape
 	lines := strings.Split(content, "\n")
 
 	row := 0
@@ -175,6 +175,7 @@ func stringToGrid(content string) Grid {
 			for k := 0; k < len(shapes); k++ {
 				if shapes[k].Id == id {
 					foundIdx = k
+					// fmt.Printf("found shape %p at position %d\n", shapes[k], k)
 					break
 				}
 			}
@@ -182,11 +183,12 @@ func stringToGrid(content string) Grid {
 			if foundIdx == -1 {
 				newShape := Shape{Id: id, Locked: false}
 				newShape.Sprite = string(char)
-				shapes = append(shapes, newShape)
+				shapes = append(shapes, &newShape)
 				foundIdx = len(shapes) - 1
+				// fmt.Printf("added shape with address %p at position %d\n", &newShape, foundIdx)
 			}
 
-			gridRow[col] = Cell{Covered: true, Shape: &shapes[foundIdx]}
+			gridRow[col] = Cell{Covered: true, Shape: shapes[foundIdx]}
 		}
 
 		grid[row] = gridRow
